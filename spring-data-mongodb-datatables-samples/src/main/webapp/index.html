@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css"
+	href="/css/jquery.dataTables-1.10.12.min.css" />
+<title>DataTables mongodb</title>
+<style>
+.form-inline {
+    padding: 1em 0;
+    border: solid 1px black;
+}
+.form-group{
+    display: inline-block;
+}
+</style>
+</head>
+<body>
+	<div class="form-inline">
+		<div class="form-group">
+			<label for="orderNumber_selector">orderNumber:</label> <select
+				id="orderNumber_selector" multiple="multiple">
+				<option value="\">\</option>
+				<option value="\\">\\</option>
+				<option value="true">true</option>
+				<option value="false">false</option>
+				<option value="TRUE">TRUE</option>
+				<option value="FALSE">FALSE</option>
+				<option value="o100">o100</option>
+				<option value="O10001">O10001</option>
+				<option value="O10002">O10002</option>
+				<option value="02">02</option>
+				<option value="10">10</option>
+				<option value="000">000</option>
+				<option value="中文">中文</option>
+				<option value="o">o</option>
+				<option value="O">O</option>
+			</select>
+		</div>
+
+		<div class="form-group">
+			<label for="isValid_selector">isValid: </label> <select
+				id="isValid_selector" multiple="multiple">
+				<option value="true">true</option>
+				<option value="false">false</option>
+				<option value="TRUE">TRUE</option>
+				<option value="FALSE">FALSE</option>
+			</select>
+		</div>
+
+		<div class="form-group">
+			<input id="cb_contain_date" type="checkbox" /> 
+			<label for="start_date">date start: </label> 
+			<input id="start_date" type="date" value="2010-01-01" />
+			<label for="end_date">date end: </label> 
+			<input id="end_date" type="date" value="2016-07-01" />
+		</div class="form-group">
+
+		<input id="btn_submit" class="btn btn-default" type="button" value="submit" />
+	</div>
+
+	<table id="sample" class="table">
+		<thead>
+			<tr>
+				<th>id</th>
+				<th>date</th>
+				<th>orderNumber</th>
+				<th>isValid</th>
+				<th>amount</th>
+				<th>price</th>
+			</tr>
+		</thead>
+	</table>
+
+	<script type="text/javascript" src="/lib/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript"
+		src="/lib/jquery.dataTables-1.10.12.min.js"></script>
+
+	<script type="text/javascript" src="/lib/jquery.spring-friendly.js"></script>
+
+	<script type="text/javascript" src="/js/home.js"></script>
+</body>
+</html>
