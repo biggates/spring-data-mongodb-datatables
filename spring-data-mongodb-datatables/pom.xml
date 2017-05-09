@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.eaphone</groupId>
 		<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.1.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-data-mongodb-datatables</artifactId>
@@ -17,17 +17,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>com.eaphone.jiankang</groupId>
-				<artifactId>eaphone-mvc-bom</artifactId>
-				<version>0.0.2-SNAPSHOT</version>
-				<type>import</type>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<dependencies>
 		<dependency>

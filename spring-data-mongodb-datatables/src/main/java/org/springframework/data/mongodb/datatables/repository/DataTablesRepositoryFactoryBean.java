@@ -18,7 +18,11 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 public class DataTablesRepositoryFactoryBean<R extends MongoRepository<T, ID>, T, ID extends Serializable>
 extends MongoRepositoryFactoryBean<R, T, ID> {
 
-	@Override
+	public DataTablesRepositoryFactoryBean(Class<? extends R> repositoryInterface) {
+        super(repositoryInterface);
+    }
+
+    @Override
 	protected RepositoryFactorySupport getFactoryInstance(MongoOperations operations) {
 		return new DataTablesRepositoryFactory(operations);
 	}
