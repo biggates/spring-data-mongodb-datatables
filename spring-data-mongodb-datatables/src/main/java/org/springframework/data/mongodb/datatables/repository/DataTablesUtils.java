@@ -30,8 +30,7 @@ public class DataTablesUtils {
 
     private final static char ESCAPE_CHAR = '\\';
 
-    public static <T> Query getQuery(String collectionName, final DataTablesInput input) {
-
+    static <T> Query getQuery(String collectionName, final DataTablesInput input) {
         Query q = new Query();
 
         // check for each searchable column whether a filter value exists
@@ -100,7 +99,13 @@ public class DataTablesUtils {
         return q;
     }
 
-    public static com.querydsl.core.types.Predicate getPredicate(PathBuilder<?> entity, DataTablesInput input) {
+    /**
+     * Experimental support for Querydsl, not verified yet
+     * @param entity
+     * @param input
+     * @return
+     */
+    static com.querydsl.core.types.Predicate getPredicate(PathBuilder<?> entity, DataTablesInput input) {
 
         BooleanBuilder predicate = new BooleanBuilder();
         // check for each searchable column whether a filter value exists

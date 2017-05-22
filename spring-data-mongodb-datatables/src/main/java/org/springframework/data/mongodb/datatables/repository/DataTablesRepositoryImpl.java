@@ -1,5 +1,7 @@
 package org.springframework.data.mongodb.datatables.repository;
 
+import static org.springframework.data.mongodb.core.query.Query.*;
+
 import java.io.Serializable;
 import java.util.Collections;
 
@@ -31,21 +33,28 @@ implements DataTablesRepository<T, ID> {
 		this.mongoOperations = mongoOperations;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.mongodb.datatables.repository.DataTablesRepository#findAll(org.springframework.data.jpa.datatables.mapping.DataTablesInput)
+	 */
+	@Override
 	public DataTablesOutput<T> findAll(DataTablesInput input) {
 		return findAll(input, null, null);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.mongodb.datatables.repository.DataTablesRepository#findAll(org.springframework.data.jpa.datatables.mapping.DataTablesInput, org.springframework.data.mongodb.core.query.Criteria)
+	 */
+	@Override
 	public DataTablesOutput<T> findAll(DataTablesInput input, Criteria additionalCriteria) {
 		return findAll(input, additionalCriteria, null);
 	}
 
 	private long count(Criteria crit) {
-		Query q = new Query().addCriteria(crit);
+		Query q = query(crit);
 		return this.mongoOperations.count(q, this.entityInformation.getCollectionName());
 	}
 
 	private <S extends T> Page<S> findAll(Query q, Pageable p, Class<S> classOfS) {
-
 		q.with(p);
 
 		long count = mongoOperations.count(q, this.entityInformation.getCollectionName());
@@ -57,6 +66,10 @@ implements DataTablesRepository<T, ID> {
 		return new PageImpl<S>(mongoOperations.find(q, classOfS, this.entityInformation.getCollectionName()), p, count);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.mongodb.datatables.repository.DataTablesRepository#findAll(org.springframework.data.jpa.datatables.mapping.DataTablesInput, org.springframework.data.mongodb.core.query.Criteria, org.springframework.data.mongodb.core.query.Criteria)
+	 */
+	@Override
 	public DataTablesOutput<T> findAll(DataTablesInput input, Criteria additionalCrit, Criteria preFilteringCrit) {
 		DataTablesOutput<T> output = new DataTablesOutput<T>();//date类型在additionalCrit中
 		output.setDraw(input.getDraw());

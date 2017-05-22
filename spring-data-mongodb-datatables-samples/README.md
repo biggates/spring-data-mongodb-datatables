@@ -54,9 +54,3 @@ If you want to use `spring-data-mongodb-datatables` in your own project, these s
 
 5. In your html page, add `jquery.spring-friendly.js` before initializing Datatables.
 
-## Known Issues ##
-
-* MongoDB aggregation is not supported yet.
-* Unlike the jpa version, the usage is currently restricted in queries on ONE document only.
-* You may have to manually exclude some jpa-related dependencies, especially in spring-boot projects and you do not need them.
-* Text search is simply converted to Literal Regular Expressions and may contain some flaws
