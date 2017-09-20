@@ -10,7 +10,7 @@
 
 	<groupId>com.eaphone</groupId>
 	<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<organization>
@@ -55,6 +55,23 @@
 						<groupId>org.hibernate</groupId>
 						<artifactId>hibernate-entitymanager</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>org.springframework</groupId>
+						<artifactId>spring-jdbc</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.springframework.data</groupId>
+						<artifactId>spring-data-jpa</artifactId>
+					</exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-orm</artifactId>
+                    </exclusion>
+					<exclusion>
+						<groupId>com.querydsl</groupId>
+						<artifactId>querydsl-jpa</artifactId>
+					</exclusion>
+
 				</exclusions>
 			</dependency>
 		</dependencies>
