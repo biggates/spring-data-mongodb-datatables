@@ -4,7 +4,8 @@ import java.io.Serializable;
 
 import org.springframework.data.jpa.datatables.mapping.DataTablesInput;
 import org.springframework.data.jpa.datatables.mapping.DataTablesOutput;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -16,8 +17,7 @@ extends PagingAndSortingRepository<T, ID> {
 	/**
 	 * Returns the filtered list for the given {@link DataTablesInput}.
 	 *
-	 * @param input
-	 *            the {@link DataTablesInput} mapped from the Ajax request
+	 * @param input the {@link DataTablesInput} mapped from the Ajax request
 	 * @return a {@link DataTablesOutput}
 	 */
 	DataTablesOutput<T> findAll(DataTablesInput input);
@@ -25,10 +25,8 @@ extends PagingAndSortingRepository<T, ID> {
 	/**
 	 * Returns the filtered list for the given {@link DataTablesInput}.
 	 *
-	 * @param input
-	 *            the {@link DataTablesInput} mapped from the Ajax request
-	 * @param additionalSpecification
-	 *            an additional {@link Specification} to apply to the query
+	 * @param input the {@link DataTablesInput} mapped from the Ajax request
+	 * @param additionalSpecification an additional {@link Criteria} to apply to the query
 	 *            (with an "AND" clause)
 	 * @return a {@link DataTablesOutput}
 	 */
@@ -37,18 +35,21 @@ extends PagingAndSortingRepository<T, ID> {
 	/**
 	 * Returns the filtered list for the given {@link DataTablesInput}.
 	 *
-	 * @param input
-	 *            the {@link DataTablesInput} mapped from the Ajax request
-	 * @param additionalSpecification
-	 *            an additional {@link Specification} to apply to the query
+	 * @param input the {@link DataTablesInput} mapped from the Ajax request
+	 * @param additionalSpecification an additional {@link Criteria} to apply to the query
 	 *            (with an "AND" clause)
-	 * @param preFilteringSpecification
-	 *            a pre-filtering {@link Specification} to apply to the query
+	 * @param preFilteringSpecification a pre-filtering {@link Criteria} to apply to the query
 	 *            (with an "AND" clause)
 	 * @return a {@link DataTablesOutput}
 	 */
-	//	DataTablesOutput<T> findAll(DataTablesInput input, Query additionalQuery,
-	//			Query preFilteringQuery);
 	DataTablesOutput<T> findAll(DataTablesInput input, Criteria additionalCriteria, Criteria preFilteringCriteria);
 
+	/**
+	 * Returns the filtered list for the given {@link DataTablesInput} using the given {@link TypedAggregation}
+	 * @param classOfView
+	 * @param input
+	 * @param aggregation
+	 * @return
+	 */
+	<View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input, AggregationOperation... operations);
 }
