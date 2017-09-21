@@ -1,6 +1,7 @@
 package org.springframework.data.mongodb.datatables.repository;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import org.springframework.data.jpa.datatables.mapping.DataTablesInput;
 import org.springframework.data.jpa.datatables.mapping.DataTablesOutput;
@@ -48,8 +49,18 @@ extends PagingAndSortingRepository<T, ID> {
 	 * Returns the filtered list for the given {@link DataTablesInput} using the given {@link TypedAggregation}
 	 * @param classOfView
 	 * @param input
-	 * @param aggregation
+	 * @param operations
 	 * @return
 	 */
 	<View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input, AggregationOperation... operations);
+	
+    /**
+     * Returns the filtered list for the given {@link DataTablesInput} using the given {@link TypedAggregation}
+     * @param classOfView
+     * @param input
+     * @param operations
+     * @return
+     */
+    <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input, Collection<? extends AggregationOperation> operations);
+
 }

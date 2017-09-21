@@ -3,6 +3,7 @@ package org.springframework.data.mongodb.datatables.repository;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -128,6 +129,9 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
         return output;
     }
 
+    /* (non-Javadoc)
+     * @see org.springframework.data.mongodb.datatables.repository.DataTablesRepository#findAll(java.lang.Class, org.springframework.data.jpa.datatables.mapping.DataTablesInput, org.springframework.data.mongodb.core.aggregation.AggregationOperation[])
+     */
     @Override
     public <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
             AggregationOperation... operations) {
@@ -156,6 +160,16 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
         }
 
         return output;
+    }
+
+    /* (non-Javadoc)
+     * @see org.springframework.data.mongodb.datatables.repository.DataTablesRepository#findAll(java.lang.Class, org.springframework.data.jpa.datatables.mapping.DataTablesInput, java.util.Collection)
+     */
+    @Override
+    public <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
+            Collection<? extends AggregationOperation> operations) {
+        AggregationOperation[] opArray = operations.toArray(new AggregationOperation[0]);
+        return findAll(classOfView, input, opArray);
     }
 
     private <View> Page<View> findPage(Class<T> classOfT, Class<View> classOfView, DataTablesInput input,
