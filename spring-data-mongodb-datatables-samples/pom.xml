@@ -12,25 +12,33 @@
 	<packaging>war</packaging>
 
 	<name>spring-data-mongodb-datatables-samples</name>
-	<description>用于演示 spring-data-mongodb-datatables 的工作环境</description>
+	<description>An example project showing how spring-data-mongodb-datatables works.</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<boot.version>1.5.1.RELEASE</boot.version>
 
 		<java.version>1.8</java.version>
 		<m2eclipse.wtp.contextRoot>/</m2eclipse.wtp.contextRoot>
 	</properties>
 
 	<dependencies>
+        <dependency>
+            <groupId>com.eaphone</groupId>
+            <artifactId>spring-data-mongodb-datatables</artifactId>
+        </dependency>
+        
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>${boot.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-mongodb</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- fongo for fake mongodb -->
@@ -38,17 +46,6 @@
 			<groupId>com.github.fakemongo</groupId>
 			<artifactId>fongo</artifactId>
 			<version>2.0.12</version>
-		</dependency>
-
-		<!-- lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.eaphone</groupId>
-			<artifactId>spring-data-mongodb-datatables</artifactId>
 		</dependency>
 
 		<dependency>

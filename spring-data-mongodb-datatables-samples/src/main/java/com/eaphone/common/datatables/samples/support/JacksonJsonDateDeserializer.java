@@ -1,4 +1,4 @@
-package com.eaphone.common.datatables.samples.model;
+package com.eaphone.common.datatables.samples.support;
 
 import java.io.IOException;
 import java.text.ParseException;
