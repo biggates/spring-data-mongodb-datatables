@@ -30,7 +30,7 @@ public class JacksonJsonDateDeserializer extends StdDeserializer<Date> {
     @Override
     public Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         if (p.getCurrentToken().isNumeric()) {
-            // 这里是 timestamp
+            // timestamp
             try {
                 return new Date(p.getLongValue());
             } catch (Exception nfe) {

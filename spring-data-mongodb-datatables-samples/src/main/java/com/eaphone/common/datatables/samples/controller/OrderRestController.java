@@ -6,9 +6,9 @@ import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.datatables.mapping.DataTablesInput;
-import org.springframework.data.jpa.datatables.mapping.DataTablesOutput;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
+import org.springframework.data.mongodb.datatables.mapping.DataTablesOutput;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -84,11 +84,6 @@ public class OrderRestController {
         log.debug("default data successfully initialized.");
     }
 
-    /**
-     * 为 param 添加常用的日期格式
-     *
-     * @param binder
-     */
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.addCustomFormatter(new SpringDateFormatter());

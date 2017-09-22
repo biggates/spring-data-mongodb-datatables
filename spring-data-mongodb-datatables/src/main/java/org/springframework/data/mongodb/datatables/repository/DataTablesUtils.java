@@ -17,27 +17,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.jpa.datatables.mapping.Column;
-import org.springframework.data.jpa.datatables.mapping.DataTablesInput;
-import org.springframework.data.jpa.datatables.mapping.Search;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.datatables.mapping.Column;
+import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
+import org.springframework.data.mongodb.datatables.mapping.Search;
 import org.springframework.data.mongodb.datatables.model.DataTablesCount;
 import org.springframework.util.StringUtils;
-
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Ops;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.PathBuilder;
-import com.querydsl.core.types.dsl.StringExpression;
 
 public class DataTablesUtils {
 
     private final static String OR_SEPARATOR = "+";
-
+    private final static String ESCAPED_OR_SEPARATOR = "\\+";
+    private final static String ATTRIBUTE_SEPARATOR = ".";
+    private final static String ESCAPED_ATTRIBUTE_SEPARATOR = "\\.";
     private final static char ESCAPE_CHAR = '\\';
+    private final static String NULL = "NULL";
+    private final static String ESCAPED_NULL = "\\NULL";
 
     public static <T> Query getQuery(String collectionName, final DataTablesInput input) {
         Query q = new Query();
@@ -69,6 +67,8 @@ public class DataTablesUtils {
             String filterValue = sParameter.getValue();
             boolean searchAble = column.getSearchable();
             if (searchAble && StringUtils.hasText(filterValue)) {
+                // TODO 处理 column.search.regex 的逻辑，及完全匹配和按正则表达式匹配。
+                // TODO 处理 Date 类型
                 Criteria c = Criteria.where(column.getData());
 
                 if (filterValue.contains(OR_SEPARATOR)) {
@@ -127,67 +127,6 @@ public class DataTablesUtils {
     }
 
     /**
-     * Experimental support for Querydsl, not verified yet
-     * 
-     * @param entity
-     * @param input
-     * @return
-     */
-    static com.querydsl.core.types.Predicate getPredicate(PathBuilder<?> entity, DataTablesInput input) {
-
-        BooleanBuilder predicate = new BooleanBuilder();
-        // check for each searchable column whether a filter value exists
-        for (Column column : input.getColumns()) {
-            if (column.getSearchable() == null) {
-                continue;
-            }
-            String filterValue = column.getSearch().getValue();
-            if (column.getSearchable() && StringUtils.hasText(filterValue)) {
-
-                if (filterValue.contains(OR_SEPARATOR)) {
-                    // the filter contains multiple values, add a 'WHERE .. IN'
-                    // clause
-                    // Note: "\\" is added to escape special character '+'
-                    String[] values = filterValue.split("\\" + OR_SEPARATOR);
-                    if ((values.length > 0) && isBoolean(values[0])) {
-                        List<Boolean> booleanValues = new ArrayList<Boolean>();
-                        for (String value : values) {
-                            booleanValues.add(Boolean.valueOf(value));
-                        }
-                        predicate = predicate.and(entity.getBoolean(column.getData()).in(booleanValues));
-                    } else {
-                        predicate.and(getStringExpression(entity, column.getData()).in(values));
-                    }
-                } else {
-                    // the filter contains only one value, add a 'WHERE .. LIKE'
-                    // clause
-                    if (isBoolean(filterValue)) {
-                        predicate = predicate.and(entity.getBoolean(column.getData()).eq(Boolean.valueOf(filterValue)));
-                    } else {
-                        predicate = predicate.and(getStringExpression(entity, column.getData()).lower()
-                                .like(getLikeFilterValue(filterValue), ESCAPE_CHAR));
-                    }
-                }
-            }
-        }
-
-        // check whether a global filter value exists
-        String globalFilterValue = input.getSearch().getValue();
-        if (StringUtils.hasText(globalFilterValue)) {
-            BooleanBuilder matchOneColumnPredicate = new BooleanBuilder();
-            // add a 'WHERE .. LIKE' clause on each searchable column
-            for (Column column : input.getColumns()) {
-                if (column.getSearchable()) {
-                    matchOneColumnPredicate = matchOneColumnPredicate.or(getStringExpression(entity, column.getData())
-                            .lower().like(getLikeFilterValue(globalFilterValue), ESCAPE_CHAR));
-                }
-            }
-            predicate = predicate.and(matchOneColumnPredicate);
-        }
-        return predicate;
-    }
-
-    /**
      * Creates a 'LIMIT .. OFFSET .. ORDER BY ..' clause for the given {@link DataTablesInput}.
      * 
      * @param input the {@link DataTablesInput} mapped from the Ajax request
@@ -195,7 +134,7 @@ public class DataTablesUtils {
      */
     public static Pageable getPageable(DataTablesInput input) {
         List<Order> orders = new ArrayList<Order>();
-        for (org.springframework.data.jpa.datatables.mapping.Order order : input.getOrder()) {
+        for (org.springframework.data.mongodb.datatables.mapping.Order order : input.getOrder()) {
             if (order.getColumn() != null && input.getColumns().size() > order.getColumn()) {
                 Column column = input.getColumns().get(order.getColumn());
                 if (column != null && column.getOrderable()) {
@@ -231,10 +170,6 @@ public class DataTablesUtils {
     @Deprecated
     private static String getLikeFilterValue(String filterValue) {
         return "%" + filterValue.toLowerCase().replaceAll("%", "\\\\" + "%").replaceAll("_", "\\\\" + "_") + "%";
-    }
-
-    private static StringExpression getStringExpression(PathBuilder<?> entity, String columnData) {
-        return Expressions.stringOperation(Ops.STRING_CAST, entity.get(columnData));
     }
 
     private static class DataTablesPageRequest implements Pageable {

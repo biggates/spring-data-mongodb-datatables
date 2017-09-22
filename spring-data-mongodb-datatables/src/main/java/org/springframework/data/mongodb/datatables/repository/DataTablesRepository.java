@@ -3,11 +3,11 @@ package org.springframework.data.mongodb.datatables.repository;
 import java.io.Serializable;
 import java.util.Collection;
 
-import org.springframework.data.jpa.datatables.mapping.DataTablesInput;
-import org.springframework.data.jpa.datatables.mapping.DataTablesOutput;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
+import org.springframework.data.mongodb.datatables.mapping.DataTablesOutput;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 

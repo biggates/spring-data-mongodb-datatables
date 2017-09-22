@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>io.spring.platform</groupId>
-		<artifactId>platform-bom</artifactId>
-		<version>Brussels-RELEASE</version>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.6.RELEASE</version>
 	</parent>
 
 	<groupId>com.eaphone</groupId>
 	<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.3.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<organization>
@@ -19,9 +19,8 @@
 	</organization>
 
 	<properties>
-		<project.version>0.1.1-SNAPSHOT</project.version>
+		<project.version>0.3.1-SNAPSHOT</project.version>
 
-		<!-- 其他 Plugin 的属性 -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
 	</properties>
@@ -33,56 +32,26 @@
 				<artifactId>spring-data-mongodb-datatables</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-web</artifactId>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-thymeleaf</artifactId>
+				<artifactId>spring-boot-starter-data-mongodb</artifactId>
 			</dependency>
-
 			<dependency>
-				<groupId>com.github.darrachequesne</groupId>
-				<artifactId>spring-data-jpa-datatables</artifactId>
-				<version>4.1</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate-core</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate-entitymanager</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.springframework</groupId>
-						<artifactId>spring-jdbc</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.springframework.data</groupId>
-						<artifactId>spring-data-jpa</artifactId>
-					</exclusion>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring-orm</artifactId>
-                    </exclusion>
-					<exclusion>
-						<groupId>com.querydsl</groupId>
-						<artifactId>querydsl-jpa</artifactId>
-					</exclusion>
-
-				</exclusions>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-thymeleaf</artifactId>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
-	<!-- 插件配置 -->
 	<build>
 		<defaultGoal>compile</defaultGoal>
 		<pluginManagement>
 			<plugins>
-				<!-- compiler插件, 设定JDK版本 -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>

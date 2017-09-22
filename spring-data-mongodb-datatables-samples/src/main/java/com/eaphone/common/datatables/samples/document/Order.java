@@ -4,11 +4,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-
-import org.springframework.data.jpa.datatables.mapping.DataTablesOutput;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.datatables.mapping.DataTablesOutput;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -25,7 +24,6 @@ import lombok.Data;
 public class Order {
 
     @Id
-    @GeneratedValue
     @JsonView(DataTablesOutput.View.class)
     private String id;
 
@@ -45,6 +43,7 @@ public class Order {
     @JsonView(DataTablesOutput.View.class)
     private double price;
 
+    @Transient
     public static Order random() {
         Order o = new Order();
         Random r = new Random();

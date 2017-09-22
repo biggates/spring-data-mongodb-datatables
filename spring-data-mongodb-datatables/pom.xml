@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.eaphone</groupId>
 		<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-		<version>0.2.1-SNAPSHOT</version>
+		<version>0.3.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-data-mongodb-datatables</artifactId>
@@ -20,16 +20,35 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.github.darrachequesne</groupId>
-			<artifactId>spring-data-jpa-datatables</artifactId>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-mongodb</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-apt</artifactId>
+			<optional>true</optional>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
