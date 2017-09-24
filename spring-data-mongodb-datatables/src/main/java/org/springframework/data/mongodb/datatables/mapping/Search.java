@@ -1,7 +1,5 @@
 package org.springframework.data.mongodb.datatables.mapping;
 
-import javax.validation.constraints.NotNull;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +12,6 @@ public class Search {
   /**
    * Global search value. To be applied to all columns which have searchable as true.
    */
-  @NotNull
   private String value;
 
   /**
@@ -23,7 +20,6 @@ public class Search {
    * expression searching for performance reasons on large data sets, but it is technically possible
    * and at the discretion of your script.
    */
-  @NotNull
-  private Boolean regex;
+  private boolean regex = false;
 
 }

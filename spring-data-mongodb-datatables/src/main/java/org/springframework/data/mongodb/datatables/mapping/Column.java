@@ -1,8 +1,7 @@
 package org.springframework.data.mongodb.datatables.mapping;
 
-import javax.validation.constraints.NotNull;
-
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.util.StringUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,50 +12,54 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Column {
 
-  /**
-   * Column's data source
-   * 
-   * @see http://datatables.net/reference/option/columns.data
-   */
-  @NotBlank
-  private String data;
+    /**
+     * Column's data source
+     * 
+     * @see http://datatables.net/reference/option/columns.data
+     */
+    @NotBlank
+    private String data;
 
-  /**
-   * Column's name
-   * 
-   * @see http://datatables.net/reference/option/columns.name
-   */
-  private String name;
+    /**
+     * Column's name
+     * 
+     * @see http://datatables.net/reference/option/columns.name
+     */
+    private String name;
 
-  /**
-   * Flag to indicate if this column is searchable (true) or not (false).
-   * 
-   * @see http://datatables.net/reference/option/columns.searchable
-   */
-  @NotNull
-  private Boolean searchable;
+    /**
+     * Flag to indicate if this column is searchable (true) or not (false).
+     * 
+     * @see http://datatables.net/reference/option/columns.searchable
+     */
+    private boolean searchable = false;
 
-  /**
-   * Flag to indicate if this column is orderable (true) or not (false).
-   * 
-   * @see http://datatables.net/reference/option/columns.orderable
-   */
-  @NotNull
-  private Boolean orderable;
+    /**
+     * Flag to indicate if this column is orderable (true) or not (false).
+     * 
+     * @see http://datatables.net/reference/option/columns.orderable
+     */
+    private boolean orderable = true;
 
-  /**
-   * Search value to apply to this specific column.
-   */
-  @NotNull
-  private Search search;
+    /**
+     * Search value to apply to this specific column.
+     */
+    private Search search;
 
-  /**
-   * Set the search value to apply to this column
-   *
-   * @param searchValue if any, the search value to apply
-   */
-  public void setSearchValue(String searchValue) {
-    this.search.setValue(searchValue);
-  }
+    private String type = ColumnType.STRING.getCode();
+
+    private Filter filter = null;
+
+    public boolean hasValidSearch() {
+        boolean isSearchValid = false;
+        if (this.searchable) {
+            if (this.search != null) {
+                if (StringUtils.hasLength(this.search.getValue())) {
+                    isSearchValid = true;
+                }
+            }
+        }
+        return isSearchValid;
+    }
 
 }

@@ -8,7 +8,6 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.skip
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -22,20 +21,19 @@ import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.datatables.mapping.Column;
+import org.springframework.data.mongodb.datatables.mapping.ColumnType;
 import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
+import org.springframework.data.mongodb.datatables.mapping.Filter;
 import org.springframework.data.mongodb.datatables.mapping.Search;
 import org.springframework.data.mongodb.datatables.model.DataTablesCount;
 import org.springframework.util.StringUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DataTablesUtils {
 
-    private final static String OR_SEPARATOR = "+";
-    private final static String ESCAPED_OR_SEPARATOR = "\\+";
-    private final static String ATTRIBUTE_SEPARATOR = ".";
-    private final static String ESCAPED_ATTRIBUTE_SEPARATOR = "\\.";
-    private final static char ESCAPE_CHAR = '\\';
-    private final static String NULL = "NULL";
-    private final static String ESCAPED_NULL = "\\NULL";
+    private static final String COMMA = ",";
 
     public static <T> Query getQuery(String collectionName, final DataTablesInput input) {
         Query q = new Query();
@@ -57,46 +55,70 @@ public class DataTablesUtils {
     private static List<Criteria> getCriteria(final DataTablesInput input) {
         List<Criteria> result = new LinkedList<>();
         // check for each searchable column whether a filter value exists
-        List<Column> columnParametersList = input.getColumns();
+        List<Column> columns = input.getColumns();
 
-        for (Column column : columnParametersList) {
-            Search sParameter = column.getSearch();
-            if (sParameter == null) {
-                continue;
-            }
-            String filterValue = sParameter.getValue();
-            boolean searchAble = column.getSearchable();
-            if (searchAble && StringUtils.hasText(filterValue)) {
-                // TODO 处理 column.search.regex 的逻辑，及完全匹配和按正则表达式匹配。
-                // TODO 处理 Date 类型
+        for (final Column column : columns) {
+            final Search search = column.getSearch();
+            final ColumnType type = ColumnType.parse(column.getType());
+            final Filter filter = column.getFilter();
+            if (column.hasValidSearch()) {
+                // search != null && issearchable == true && search.value.length > 0
+                final String searchValue = search.getValue();
                 Criteria c = Criteria.where(column.getData());
-
-                if (filterValue.contains(OR_SEPARATOR)) {
-                    // the filter contains multiple values, add a 'WHERE
-                    // .. IN' clause
-                    // Note: "\\" is added to escape special character
-                    // '+'
-                    String[] values = filterValue.split("\\" + OR_SEPARATOR);
-                    if ((values.length > 0) && isBoolean(values[0])) {
-                        Object[] booleanValues = new Boolean[values.length];
-                        for (int i = 0; i < values.length; i++) {
-                            booleanValues[i] = Boolean.valueOf(values[i]);
-                        }
-                        c.in(booleanValues);
-                    } else {
-                        c.in(Arrays.asList(values));
-                    }
+                if (search.isRegex()) {
+                    // is regex, so treat directly as regular expression
+                    c.regex(searchValue);
                 } else {
-                    // the filter contains only one value, add a 'WHERE ... LIKE' clause
-                    if (isBoolean(filterValue)) {
-                        // boolean type
-                        c.is(Boolean.valueOf(filterValue));
+                    final Object parsedSearchValue = type.tryConvert(searchValue);
+                    if (parsedSearchValue instanceof String) {
+                        c.regex(getLikeFilterPattern(search.getValue()));
                     } else {
-                        // mimic "LIKE" clause using $regex
-                        c.regex(getLikeFilterPattern(filterValue));
+                        // numeric values , treat as $eq
+                        c.is(parsedSearchValue);
                     }
                 }
                 result.add(c);
+            } else {
+                // handle column.filter
+                if (filter != null) {
+                    Criteria c = Criteria.where(column.getData());
+                    if (StringUtils.hasLength(filter.getEq())) {
+                        // $eq takes first place
+                        c.is(type.tryConvert(filter.getEq()));
+                    } else {
+                        if (StringUtils.hasLength(filter.getIn())) {
+                            // $in takes second place
+                            final String[] parts = filter.getIn().split(COMMA);
+                            final List<Object> convertedParts = new ArrayList<>(parts.length);
+                            for (int i = 0; i < parts.length; i++) {
+                                convertedParts.set(i, type.tryConvert(parts[i]));
+                            }
+                            c.in(convertedParts);
+                        }
+
+                        if (StringUtils.hasLength(filter.getRegex())) {
+                            // $regex also works here
+                            c.regex(filter.getRegex());
+                        }
+
+                        if (type.isComparable()) {
+                            // $gt, $lt, etc. only works if type is comparable
+                            if (StringUtils.hasLength(filter.getGt())) {
+                                c.gt(type.tryConvert(filter.getGt()));
+                            }
+                            if (StringUtils.hasLength(filter.getGte())) {
+                                c.gte(type.tryConvert(filter.getGte()));
+                            }
+                            if (StringUtils.hasLength(filter.getLt())) {
+                                c.lt(type.tryConvert(filter.getLt()));
+                            }
+                            if (StringUtils.hasLength(filter.getLte())) {
+                                c.lte(type.tryConvert(filter.getLte()));
+                            }
+                        }
+                    }
+                    result.add(c);
+                }
             }
         }
 
@@ -136,14 +158,26 @@ public class DataTablesUtils {
         List<Order> orders = new ArrayList<Order>();
         for (org.springframework.data.mongodb.datatables.mapping.Order order : input.getOrder()) {
             if (order.getColumn() != null && input.getColumns().size() > order.getColumn()) {
-                Column column = input.getColumns().get(order.getColumn());
-                if (column != null && column.getOrderable()) {
+                Column column = null;
+                if (order.getColumn() != null && input.getColumns() != null
+                        && input.getColumns().size() > order.getColumn()) {
+                    column = input.getColumns().get(order.getColumn());
+                } else {
+                    column = input.getColumn(order.getData());
+                }
+
+                if (column == null) {
+                    log.debug("Warning: unable to find column by specified order {}", order);
+                } else if (!column.isOrderable()) {
+                    log.debug("Warning: column {} is not orderable, order is ignored", column);
+                } else {
                     String sortColumn = column.getData();
                     Direction sortDirection = Direction.fromString(order.getDir());
                     orders.add(new Order(sortDirection, sortColumn));
                 }
             }
         }
+
         Sort sort = orders.isEmpty() ? null : new Sort(orders);
 
         if (input.getLength() == -1) {
@@ -153,23 +187,14 @@ public class DataTablesUtils {
         return new DataTablesPageRequest(input.getStart(), input.getLength(), sort);
     }
 
-    private static boolean isBoolean(String filterValue) {
-        return "TRUE".equalsIgnoreCase(filterValue) || "FALSE".equalsIgnoreCase(filterValue);
-    }
-
     /**
-     * 将用户的输入转换为搜索用的正则表达式
+     * "LIKE" search is converted to $regex
      * 
      * @param filterValue
      * @return
      */
     private static Pattern getLikeFilterPattern(String filterValue) {
         return Pattern.compile(filterValue, Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
-    }
-
-    @Deprecated
-    private static String getLikeFilterValue(String filterValue) {
-        return "%" + filterValue.toLowerCase().replaceAll("%", "\\\\" + "%").replaceAll("_", "\\\\" + "_") + "%";
     }
 
     private static class DataTablesPageRequest implements Pageable {
