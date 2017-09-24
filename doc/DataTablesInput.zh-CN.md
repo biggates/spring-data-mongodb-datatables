@@ -34,29 +34,30 @@
 |   本项目   |    `draw`      | `integer`  |   可选   |    `1`   | 用于在异步场景中将响应和响应的请求对应起来。 | 改为可选的 |
 | DataTables |    `start`     | `integer`  |   可选   |    `0`   | 用于分页，描述本页的第一条数据在实际数据集中的 index 。| 无修改 |
 | DataTables |    `length`    | `integer`  |   可选   |   `10`   | 用于分页，描述本页的数据的长度。如果取值为 `-1` 则表示返回从 `start` 开始的全部数据。 | 无修改 |
-|   本项目   |    `search`    |  `object`  |   可选   |  `null`   | 用于全局搜索，描述全局搜索的参数。 | 在实际项目中不使用全局搜索，因此不对该参数进行处理。 |
-|   本项目   | `search.value` |  `string`  |   必须   |           | 用于全局搜索，描述全局搜索的值。 | 在实际项目中不使用全局搜索，因此不对该参数进行处理。 |
-|   本项目   | `search.regex` |  `boolean` |   可选   |  `false`  | 用于全局搜索，描述全局搜索是否按正则表达式进行。 | 在实际项目中不使用全局搜索，因此不对该参数进行处理。 |
-|   本项目   |     `order`    |  `array`   |   可选   |  `null`   | 用于指定排序方式。 | `order` 参数整个改为可选的 |
+|   本项目   |    `search`    |  `object`  |   可选   |  `null`   | 用于全局搜索，描述全局搜索的参数。 | 全局搜索修改为可选的 |
+|   本项目   | `search.value` |  `string`  |   必须   |           | 用于全局搜索，描述全局搜索的值。 | 全局搜索修改为可选的 |
+|   本项目   | `search.regex` |  `boolean` |   可选   |  `false`  | 用于全局搜索，描述全局搜索是否按正则表达式进行。 | 全局搜索修改为可选的 |
+|   本项目   |     `order`    |  `array`   |   可选   |  `null`   | 用于指定排序方式。 | `order` 参数改为可选的 |
 |   本项目   | `order[i].data` | `string` |  可选  |     | 用于指定排序的列的来源。该值和 `column` 必须传一个。 | 新增该参数，用于当没有按列搜索的时候简化参数（整个 `columns` 都不用传）。 |
 |   本项目   | `order[i].column` | `integer` |  可选  |     | 用于指定排序的列的 index。该值和 `data` 必须传一个。 |  |
-| DataTables | `order[i].dir` | `asc/desc` | 必须 |   | 用于指定排序的列的排序方向。 | 无修改 |
+| DataTables | `order[i].dir` | `string(asc/desc)` | 必须 |   | 用于指定排序的列的排序方向。 | 无修改 |
 |   本项目   |   `columns`                 | `array`   | 可选 |    | 用于描述每一列。 | `columns` 参数整个改为可选的 |
 | DataTables | `columns[i].data`           | `string`  | 必须 |    | 用于描述每一列的数据的来源。 | 无修改 |
 |   本项目   | `columns[i].name`           | `string`  | 可选 |    | 用于描述每一列的数据的名称。 | 后端不处理该参数 |
 |   本项目   | `columns[i].searchable`     | `boolean` | 可选 |  `true`  | 用于描述每一列是否可被搜索 | 默认值改为 `true` |
 |   本项目   | `columns[i].orderable`      | `boolean` | 可选 |  `true`   | 用于描述每一列是否可被排序 | 默认值改为 `true` |
-|   本项目   | `columns[i].type`           | `integer/double/string/date` | 可选 |  `string`   | 描述数据的类型。 | 新增 |
-|   本项目   | `columns[i].search`         | `object`  | 可选 |  `null`   | 按列搜索的具体参数。注意 `filter` 和 `search` 不能并存。 | 按列搜索整个改为可选的 |
+|   本项目   | `columns[i].type`           | `string(integer/double/string/date)` | 可选 |  `string`   | 描述数据的类型。 | 新增 |
+|   本项目   | `columns[i].search`         | `object`  | 可选 |  `null`   | 按列搜索的具体参数。注意 `filter` 和 `search` 并存时，以 `search` 为主。 | 按列搜索整个改为可选的 |
 |   本项目   | `columns[i].search.value`   | `string`  | 可选 |  `""`   | 按列搜索的值。 | 无修改 |
 |   本项目   | `columns[i].search.regex`   | `boolean` | 可选 |  `false`   | 按列搜索是否按正则表达式进行。 | 无修改 |
-|   本项目   | `columns[i].filter`         | `object`  | 可选 |  `null`   | 按列筛选的具体参数。注意 `filter` 和 `search` 不能并存。 | 新增 |
+|   本项目   | `columns[i].filter`         | `object`  | 可选 |  `null`   | 按列筛选的具体参数。注意 `filter` 和 `search` 并存时，以 `search` 为主。 | 新增 |
 |   本项目   | `columns[i].filter.gt`      | `string` | 可选 |  `null`   | 按列筛选的 `>` 条件。 | 新增 |
 |   本项目   | `columns[i].filter.gte`     | `string` | 可选 |  `null`   | 按列筛选的 `>=` 条件。 | 新增 |
 |   本项目   | `columns[i].filter.lt`      | `string` | 可选 |  `null`   | 按列筛选的 `<` 条件。 | 新增 |
 |   本项目   | `columns[i].filter.lte`     | `string` | 可选 |  `null`   | 按列筛选的 `<=` 条件。 | 新增 |
 |   本项目   | `columns[i].filter.eq`      | `string` | 可选 |  `null`   | 按列筛选的 `=` 条件。 | 新增 |
 |   本项目   | `columns[i].filter.in`      | `string(csv)` | 可选 |  `null`   | 按列筛选的 `in` 条件，用于筛选该列的值在指定的数组中的情况。给出的多个数据用 `,` 隔开。 | 新增 |
+|   本项目   | `columns[i].filter.regex`      | `string` | 可选 |  `null`   | 按列筛选的 `in` 条件，用于筛选该列的值在指定的数组中的情况。给出的多个数据用 `,` 隔开。 | 新增 |
 
 ## 实例 ##
 
