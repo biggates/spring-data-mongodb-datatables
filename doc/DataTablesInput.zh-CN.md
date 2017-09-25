@@ -57,7 +57,7 @@
 |   本项目   | `columns[i].filter.lte`     | `string` | 可选 |  `null`   | 按列筛选的 `<=` 条件。 | 新增 |
 |   本项目   | `columns[i].filter.eq`      | `string` | 可选 |  `null`   | 按列筛选的 `=` 条件。 | 新增 |
 |   本项目   | `columns[i].filter.in`      | `string(csv)` | 可选 |  `null`   | 按列筛选的 `in` 条件，用于筛选该列的值在指定的数组中的情况。给出的多个数据用 `,` 隔开。 | 新增 |
-|   本项目   | `columns[i].filter.regex`      | `string` | 可选 |  `null`   | 按列筛选的 `in` 条件，用于筛选该列的值在指定的数组中的情况。给出的多个数据用 `,` 隔开。 | 新增 |
+|   本项目   | `columns[i].filter.regex`      | `string` | 可选 |  `null`   | 按列筛选的 正则表达式 条件。 | 新增 |
 
 ## 实例 ##
 

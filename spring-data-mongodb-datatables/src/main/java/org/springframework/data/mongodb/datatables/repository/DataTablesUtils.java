@@ -81,10 +81,12 @@ public class DataTablesUtils {
             } else {
                 // handle column.filter
                 if (filter != null) {
+                    boolean hasValidCrit = false;
                     Criteria c = Criteria.where(column.getData());
                     if (StringUtils.hasLength(filter.getEq())) {
                         // $eq takes first place
                         c.is(type.tryConvert(filter.getEq()));
+                        hasValidCrit = true;
                     } else {
                         if (StringUtils.hasLength(filter.getIn())) {
                             // $in takes second place
@@ -94,30 +96,38 @@ public class DataTablesUtils {
                                 convertedParts.set(i, type.tryConvert(parts[i]));
                             }
                             c.in(convertedParts);
+                            hasValidCrit = true;
                         }
 
                         if (StringUtils.hasLength(filter.getRegex())) {
                             // $regex also works here
                             c.regex(filter.getRegex());
+                            hasValidCrit = true;
                         }
 
                         if (type.isComparable()) {
                             // $gt, $lt, etc. only works if type is comparable
                             if (StringUtils.hasLength(filter.getGt())) {
                                 c.gt(type.tryConvert(filter.getGt()));
+                                hasValidCrit = true;
                             }
                             if (StringUtils.hasLength(filter.getGte())) {
                                 c.gte(type.tryConvert(filter.getGte()));
+                                hasValidCrit = true;
                             }
                             if (StringUtils.hasLength(filter.getLt())) {
                                 c.lt(type.tryConvert(filter.getLt()));
+                                hasValidCrit = true;
                             }
                             if (StringUtils.hasLength(filter.getLte())) {
                                 c.lte(type.tryConvert(filter.getLte()));
+                                hasValidCrit = true;
                             }
                         }
                     }
-                    result.add(c);
+                    if (hasValidCrit) {
+                        result.add(c);
+                    }
                 }
             }
         }
