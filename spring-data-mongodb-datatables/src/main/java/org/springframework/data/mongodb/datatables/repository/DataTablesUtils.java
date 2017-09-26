@@ -93,7 +93,7 @@ public class DataTablesUtils {
                             final String[] parts = filter.getIn().split(COMMA);
                             final List<Object> convertedParts = new ArrayList<>(parts.length);
                             for (int i = 0; i < parts.length; i++) {
-                                convertedParts.set(i, type.tryConvert(parts[i]));
+                                convertedParts.add(type.tryConvert(parts[i]));
                             }
                             c.in(convertedParts);
                             hasValidCrit = true;
