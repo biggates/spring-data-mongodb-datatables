@@ -159,7 +159,7 @@ public class DataTablesUtils {
     }
 
     /**
-     * Creates a 'LIMIT .. OFFSET .. ORDER BY ..' clause for the given {@link DataTablesInput}.
+     * Creates a '$sort' clause for the given {@link DataTablesInput}.
      * 
      * @param input the {@link DataTablesInput} mapped from the Ajax request
      * @return a {@link Pageable}, must not be {@literal null}.
@@ -167,24 +167,32 @@ public class DataTablesUtils {
     public static Pageable getPageable(DataTablesInput input) {
         List<Order> orders = new ArrayList<Order>();
         for (org.springframework.data.mongodb.datatables.mapping.Order order : input.getOrder()) {
-            if (order.getColumn() != null && input.getColumns().size() > order.getColumn()) {
-                Column column = null;
+            Column column = null;
+            if (StringUtils.hasLength(order.getData())) {
+                column = input.getColumn(order.getData());
+            } else if (order.getColumn() != null && input.getColumns().size() > order.getColumn()) {
                 if (order.getColumn() != null && input.getColumns() != null
                         && input.getColumns().size() > order.getColumn()) {
                     column = input.getColumns().get(order.getColumn());
                 } else {
                     column = input.getColumn(order.getData());
                 }
+            }
 
-                if (column == null) {
-                    log.debug("Warning: unable to find column by specified order {}", order);
-                } else if (!column.isOrderable()) {
-                    log.debug("Warning: column {} is not orderable, order is ignored", column);
-                } else {
-                    String sortColumn = column.getData();
+            if (column == null) {
+                if (StringUtils.hasLength(order.getData())) {
+                    // in case if input has no columns defined
                     Direction sortDirection = Direction.fromString(order.getDir());
-                    orders.add(new Order(sortDirection, sortColumn));
+                    orders.add(new Order(sortDirection, order.getData()));
+                } else {
+                    log.debug("Warning: unable to find column by specified order {}", order);
                 }
+            } else if (!column.isOrderable()) {
+                log.debug("Warning: column {} is not orderable, order is ignored", column);
+            } else {
+                String sortColumn = column.getData();
+                Direction sortDirection = Direction.fromString(order.getDir());
+                orders.add(new Order(sortDirection, sortColumn));
             }
         }
 
