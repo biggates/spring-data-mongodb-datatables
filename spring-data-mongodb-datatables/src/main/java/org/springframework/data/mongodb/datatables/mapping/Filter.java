@@ -11,4 +11,7 @@ public class Filter {
     private String eq;
     private String in;
     private String regex;
+    private Boolean exists;
+    private Boolean isNull;
+    private Boolean isEmpty;
 }

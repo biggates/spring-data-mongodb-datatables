@@ -105,6 +105,21 @@ public class DataTablesUtils {
                             hasValidCrit = true;
                         }
 
+                        if (filter.getIsNull() != null && filter.getIsNull().booleanValue()) {
+                            c.is(null);
+                            hasValidCrit = true;
+                        }
+
+                        if (filter.getIsEmpty() != null && filter.getIsEmpty().booleanValue()) {
+                            c.is("");
+                            hasValidCrit = true;
+                        }
+
+                        if (filter.getExists() != null) {
+                            c.exists(filter.getExists().booleanValue());
+                            hasValidCrit = true;
+                        }
+
                         if (type.isComparable()) {
                             // $gt, $lt, etc. only works if type is comparable
                             if (StringUtils.hasLength(filter.getGt())) {
