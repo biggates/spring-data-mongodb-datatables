@@ -45,6 +45,15 @@ public class DataTablesUtils {
         }
         return q;
     }
+    
+    private static List<Object> convertArray(ColumnType type, String value){
+        final String[] parts = value.split(COMMA);
+        final List<Object> convertedParts = new ArrayList<>(parts.length);
+        for (int i = 0; i < parts.length; i++) {
+            convertedParts.add(type.tryConvert(parts[i]));
+        }
+        return convertedParts;
+    }
 
     /**
      * Convert a {@link DataTablesInput} to Criteia
@@ -87,15 +96,19 @@ public class DataTablesUtils {
                         // $eq takes first place
                         c.is(type.tryConvert(filter.getEq()));
                         hasValidCrit = true;
+                    } else if (StringUtils.hasLength(filter.getNe())) {
+                        // $ne 
+                        c.ne(type.tryConvert(filter.getNe()));
+                        hasValidCrit = true;
                     } else {
                         if (StringUtils.hasLength(filter.getIn())) {
                             // $in takes second place
-                            final String[] parts = filter.getIn().split(COMMA);
-                            final List<Object> convertedParts = new ArrayList<>(parts.length);
-                            for (int i = 0; i < parts.length; i++) {
-                                convertedParts.add(type.tryConvert(parts[i]));
-                            }
-                            c.in(convertedParts);
+                            c.in(convertArray(type, filter.getIn()));
+                            hasValidCrit = true;
+                        }
+                        
+                        if(StringUtils.hasLength(filter.getNin())) {
+                            c.nin(convertArray(type, filter.getNin()));
                             hasValidCrit = true;
                         }
 
