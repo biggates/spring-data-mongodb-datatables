@@ -7,9 +7,12 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.newA
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.skip;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
 
+import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Pageable;
@@ -26,7 +29,10 @@ import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
 import org.springframework.data.mongodb.datatables.mapping.Filter;
 import org.springframework.data.mongodb.datatables.mapping.Search;
 import org.springframework.data.mongodb.datatables.model.DataTablesCount;
+import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,10 +40,23 @@ import lombok.extern.slf4j.Slf4j;
 public class DataTablesUtils {
 
     private static final String COMMA = ",";
+    
+    /**
+     * check jackson at startup
+     */
+    private static boolean IS_JACKSON_AVAILABLE = false;
+    static {
+        try {
+            Class.forName("com.fasterxml.jackson.annotation.JsonProperty");
+            IS_JACKSON_AVAILABLE = true;
+        } catch (ClassNotFoundException cnfe) {
+        }
+    }
 
-    public static <T> Query getQuery(String collectionName, final DataTablesInput input) {
+    public static <T, ID extends Serializable> Query getQuery(MongoEntityInformation<T, ID> entityInformation,
+            final DataTablesInput input) {
         Query q = new Query();
-        List<Criteria> criteriaList = getCriteria(input);
+        List<Criteria> criteriaList = getCriteria(input, entityInformation);
         if (criteriaList != null) {
             for (final Criteria c : criteriaList) {
                 q.addCriteria(c);
@@ -45,8 +64,8 @@ public class DataTablesUtils {
         }
         return q;
     }
-    
-    private static List<Object> convertArray(ColumnType type, String value){
+
+    private static List<Object> convertArray(ColumnType type, String value) {
         final String[] parts = value.split(COMMA);
         final List<Object> convertedParts = new ArrayList<>(parts.length);
         for (int i = 0; i < parts.length; i++) {
@@ -56,12 +75,91 @@ public class DataTablesUtils {
     }
 
     /**
+     * Recursively get field name
+     * 
+     * @param javaType
+     * @param fieldNameParts
+     * @param currentIndex
+     * @return
+     */
+    private static String getFieldName(Class<?> javaType, String[] fieldNameParts, int currentIndex) {
+        if (javaType == null) {
+            return null;
+        }
+        Objects.requireNonNull(fieldNameParts);
+
+        if (currentIndex <= fieldNameParts.length - 1) {
+            String currentLevelName = fieldNameParts[currentIndex];
+            Class<?> currentLevelFieldType = null;
+            // do logic and append more
+            
+            final Field[] fields = javaType.getDeclaredFields();
+            if (fields != null) {
+                for (final Field field : fields) {
+                    if (currentLevelName.equals(field.getName())) {
+                        // match
+                        currentLevelFieldType = field.getType();
+                        break;
+                    } else if (IS_JACKSON_AVAILABLE) {
+                        // if jackson-databind is in classpath, try @JsonProperty
+                        final JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
+                        if (jsonProperty != null && StringUtils.hasLength(jsonProperty.value())) {
+                            if (currentLevelName.equals(jsonProperty.value())) {
+                                currentLevelName = field.getName();
+                                currentLevelFieldType = field.getType();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (currentIndex < fieldNameParts.length - 1) {
+                String childrenFieldName = getFieldName(currentLevelFieldType, fieldNameParts, currentIndex + 1);
+                if (childrenFieldName == null) {
+                    return null;
+                } else {
+                    return currentLevelName + "." + childrenFieldName;
+                }
+            } else {
+                return currentLevelName;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Determine actual MongoDB field name from input
+     * (including jackson-databind, etc.)
+     * 
+     * @param javaType actual java type
+     * @param fieldName frontend provided field name
+     * @return
+     */
+    private static String getFieldName(Class<?> javaType, String fieldName) {
+        if (javaType == null || StringUtils.isEmpty(fieldName)) {
+            return null;
+        }
+
+        String result = null;
+        if (fieldName.contains(".")) {
+            final String[] parts = fieldName.split("\\.");
+            result = getFieldName(javaType, parts, 0);
+        } else {
+            result = getFieldName(javaType, new String[] { fieldName }, 0);
+        }
+        log.info("getFieldName({}, '{}') returns : '{}'", javaType, fieldName, result);
+        return result;
+    }
+
+    /**
      * Convert a {@link DataTablesInput} to Criteia
      * 
      * @param input
      * @return
      */
-    private static List<Criteria> getCriteria(final DataTablesInput input) {
+    private static <T, ID extends Serializable> List<Criteria> getCriteria(final DataTablesInput input,
+            MongoEntityInformation<T, ID> entityInformation) {
         List<Criteria> result = new LinkedList<>();
         // check for each searchable column whether a filter value exists
         List<Column> columns = input.getColumns();
@@ -73,7 +171,7 @@ public class DataTablesUtils {
             if (column.hasValidSearch()) {
                 // search != null && issearchable == true && search.value.length > 0
                 final String searchValue = search.getValue();
-                Criteria c = Criteria.where(column.getData());
+                Criteria c = Criteria.where(getFieldName(entityInformation.getJavaType(), column.getData()));
                 if (search.isRegex()) {
                     // is regex, so treat directly as regular expression
                     c.regex(searchValue);
@@ -91,13 +189,13 @@ public class DataTablesUtils {
                 // handle column.filter
                 if (filter != null) {
                     boolean hasValidCrit = false;
-                    Criteria c = Criteria.where(column.getData());
+                    Criteria c = Criteria.where(getFieldName(entityInformation.getJavaType(), column.getData()));
                     if (StringUtils.hasLength(filter.getEq())) {
                         // $eq takes first place
                         c.is(type.tryConvert(filter.getEq()));
                         hasValidCrit = true;
                     } else if (StringUtils.hasLength(filter.getNe())) {
-                        // $ne 
+                        // $ne
                         c.ne(type.tryConvert(filter.getNe()));
                         hasValidCrit = true;
                     } else {
@@ -106,8 +204,8 @@ public class DataTablesUtils {
                             c.in(convertArray(type, filter.getIn()));
                             hasValidCrit = true;
                         }
-                        
-                        if(StringUtils.hasLength(filter.getNin())) {
+
+                        if (StringUtils.hasLength(filter.getNin())) {
                             c.nin(convertArray(type, filter.getNin()));
                             hasValidCrit = true;
                         }
@@ -302,9 +400,10 @@ public class DataTablesUtils {
      * @param input
      * @return
      */
-    private static List<AggregationOperation> toAggregationOperation(DataTablesInput input) {
+    private static <T, ID extends Serializable> List<AggregationOperation> toAggregationOperation(
+            MongoEntityInformation<T, ID> entityInformation, DataTablesInput input) {
         List<AggregationOperation> result = new LinkedList<>();
-        List<Criteria> criteriaList = getCriteria(input);
+        List<Criteria> criteriaList = getCriteria(input, entityInformation);
         if (criteriaList != null) {
             for (final Criteria c : criteriaList) {
                 result.add(match(c));
@@ -332,8 +431,8 @@ public class DataTablesUtils {
      * @param operations
      * @return
      */
-    public static TypedAggregation<DataTablesCount> makeAggregationCountOnly(DataTablesInput input,
-            AggregationOperation[] operations) {
+    public static <T, ID extends Serializable> TypedAggregation<DataTablesCount> makeAggregationCountOnly(
+            MongoEntityInformation<T, ID> entityInformation, DataTablesInput input, AggregationOperation[] operations) {
         List<AggregationOperation> opList = new LinkedList<>();
         if (operations != null) {
             for (int i = 0; i < operations.length; i++) {
@@ -341,7 +440,7 @@ public class DataTablesUtils {
             }
         }
 
-        opList.addAll(toAggregationOperation(input));
+        opList.addAll(toAggregationOperation(entityInformation, input));
 
         opList.add(group().count().as("_count"));
         return newAggregation(DataTablesCount.class, opList);
@@ -366,7 +465,7 @@ public class DataTablesUtils {
             }
         }
 
-        opList.addAll(toAggregationOperation(input));
+        opList.addAll(toAggregationOperation(null, input));
 
         if (pageable != null) {
             final Sort s = pageable.getSort();
