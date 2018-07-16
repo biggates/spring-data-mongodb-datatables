@@ -13,11 +13,11 @@ Basic usage is the same with [darrachequesne/spring-data-jpa-datatables](https:/
 
 `TODO` Not uploaded to any public Maven Repository yet.
 
-```
+```xml
 <dependency>
     <groupId>com.eaphone</groupId>
     <artifactId>spring-data-mongodb-datatables</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.2-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -25,7 +25,7 @@ Basic usage is the same with [darrachequesne/spring-data-jpa-datatables](https:/
 
 In any `@Configuration` class, add:
 
-```
+```java
 @EnableMongoRepositories(repositoryFactoryBeanClass = DataTablesRepositoryFactoryBean.class)
 ```
 
@@ -33,7 +33,7 @@ In any `@Configuration` class, add:
 
 Just as spring-data-mongodb does:
 
-```
+```java
 @Repository
 public interface UserRepository extends DataTablesRepository<Order, String> {
 }
@@ -43,7 +43,7 @@ Note that `DataTablesRepository` extends `PagingAndSortingRepository` so it alre
 
 ### Expose fields on view ###
 
-```
+```java
 @Data
 @Document(collection = "order")
 public class Order {
@@ -117,12 +117,17 @@ public DataTablesOutput<DataView> getAll(@Valid DataTablesInput input) {
 }
 ```
 
+## Filter ##
+
+In addition to DataTables' `columns[x].search` parameters, `columns[x].filter` is a new way to define more complex queries.  
+
+A more detailed document in Simplified Chinese (zh_CN) is provided [here](doc/DataTablesInput.zh-CN.md).
+
 ## Future Plans ##
 
 In the near future:
 
 * In Criteria converting, more types (Date) must be handled, as currently only `String` and `Boolean` are handled
-* In-column range search, which is an enhancement of original DataTables protocol. I found this requirement is common in my own project and decided to do this.
 * More tests (and verifications)
 
 ## Known Issues ##
