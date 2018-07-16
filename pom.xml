@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.6.RELEASE</version>
+		<version>1.5.13.RELEASE</version>
 	</parent>
 
 	<groupId>com.eaphone</groupId>
 	<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-	<version>0.3.1-SNAPSHOT</version>
+	<version>0.3.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<organization>
@@ -19,7 +19,7 @@
 	</organization>
 
 	<properties>
-		<project.version>0.3.1-SNAPSHOT</project.version>
+		<project.version>0.3.2-SNAPSHOT</project.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
@@ -66,7 +66,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.10.4</version>
+					<version>3.0.1</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

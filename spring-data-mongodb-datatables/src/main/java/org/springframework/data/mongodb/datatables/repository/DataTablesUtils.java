@@ -13,8 +13,12 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
+import org.reflections.ReflectionUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -33,6 +37,7 @@ import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Predicate;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DataTablesUtils {
 
     private static final String COMMA = ",";
-    
+
     /**
      * check jackson at startup
      */
@@ -89,29 +94,44 @@ public class DataTablesUtils {
         Objects.requireNonNull(fieldNameParts);
 
         if (currentIndex <= fieldNameParts.length - 1) {
-            String currentLevelName = fieldNameParts[currentIndex];
+            final String currentLevelName = fieldNameParts[currentIndex];
+            String decidedName = null;
             Class<?> currentLevelFieldType = null;
-            // do logic and append more
             
-            final Field[] fields = javaType.getDeclaredFields();
-            if (fields != null) {
-                for (final Field field : fields) {
-                    if (currentLevelName.equals(field.getName())) {
-                        // match
-                        currentLevelFieldType = field.getType();
-                        break;
-                    } else if (IS_JACKSON_AVAILABLE) {
-                        // if jackson-databind is in classpath, try @JsonProperty
-                        final JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
-                        if (jsonProperty != null && StringUtils.hasLength(jsonProperty.value())) {
-                            if (currentLevelName.equals(jsonProperty.value())) {
-                                currentLevelName = field.getName();
-                                currentLevelFieldType = field.getType();
-                                break;
+            // do logic and append more
+            @SuppressWarnings("unchecked")
+            Set<Field> possibleFields = ReflectionUtils.getAllFields(javaType, new Predicate<Field>() {
+                @Override
+                public boolean apply(@Nullable Field input) {
+                    if (input != null) {
+                        if (currentLevelName.equals(input.getName())) {
+                            return true;
+                        } else if (IS_JACKSON_AVAILABLE) {
+                            // direct matching with @JsonProperty
+                            final JsonProperty jsonProperty = input.getAnnotation(JsonProperty.class);
+                            if (jsonProperty != null && StringUtils.hasLength(jsonProperty.value())) {
+                                if (currentLevelName.equals(jsonProperty.value())) {
+                                    return true;
+                                }
                             }
+
+                            // TODO: Jackson PropertyNamingStrategy should also be considered
                         }
                     }
+                    return false;
                 }
+            });
+
+            if (possibleFields != null && !possibleFields.isEmpty()) {
+                for (final Field field : possibleFields) {
+                    decidedName = field.getName();
+                    currentLevelFieldType = field.getType();
+                    break;
+                }
+            }
+
+            if (StringUtils.isEmpty(decidedName)) {
+                return null;
             }
 
             if (currentIndex < fieldNameParts.length - 1) {
@@ -119,10 +139,10 @@ public class DataTablesUtils {
                 if (childrenFieldName == null) {
                     return null;
                 } else {
-                    return currentLevelName + "." + childrenFieldName;
+                    return decidedName + "." + childrenFieldName;
                 }
             } else {
-                return currentLevelName;
+                return decidedName;
             }
         }
         return null;
@@ -148,7 +168,7 @@ public class DataTablesUtils {
         } else {
             result = getFieldName(javaType, new String[] { fieldName }, 0);
         }
-        log.info("getFieldName({}, '{}') returns : '{}'", javaType, fieldName, result);
+        log.trace("getFieldName({}, '{}') returns : '{}'", javaType.getSimpleName(), fieldName, result);
         return result;
     }
 
