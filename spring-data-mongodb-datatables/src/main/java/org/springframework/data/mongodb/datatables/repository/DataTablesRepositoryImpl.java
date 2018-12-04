@@ -181,16 +181,15 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
             Class<View> classOfView, DataTablesInput input, AggregationOperation... operations) {
         final Pageable pageable = DataTablesUtils.getPageable(input);
 
-        final TypedAggregation<View> aggWithPage = DataTablesUtils.makeAggregation(classOfView, input, pageable,
+        final TypedAggregation<T> aggWithPage = DataTablesUtils.makeAggregation(entityInformation.getJavaType(), input, pageable,
                 operations);
 
-        final TypedAggregation<DataTablesCount> aggCount = DataTablesUtils.makeAggregationCountOnly(entityInformation,
+        final TypedAggregation<T> aggCount = DataTablesUtils.makeAggregationCountOnly(entityInformation,
                 input, operations);
         long count = 0L;
-        AggregationResults<DataTablesCount> countResult = mongoOperations.aggregate(aggCount,
-                entityInformation.getJavaType(), DataTablesCount.class);
+        AggregationResults<DataTablesCount> countResult = mongoOperations.aggregate(aggCount, DataTablesCount.class);
 
-        if (countResult != null) {
+        if (countResult != null && countResult.getUniqueMappedResult() != null) {
             count = countResult.getUniqueMappedResult().getCount();
         }
 
@@ -199,8 +198,7 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
         }
 
         List<View> result = null;
-        AggregationResults<View> aggResult = mongoOperations.aggregate(aggWithPage, entityInformation.getJavaType(),
-                classOfView);
+        AggregationResults<View> aggResult = mongoOperations.aggregate(aggWithPage, classOfView);
         if (aggResult != null) {
             result = aggResult.getMappedResults();
         }

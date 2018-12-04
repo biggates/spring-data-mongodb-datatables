@@ -32,7 +32,6 @@ import org.springframework.data.mongodb.datatables.mapping.ColumnType;
 import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
 import org.springframework.data.mongodb.datatables.mapping.Filter;
 import org.springframework.data.mongodb.datatables.mapping.Search;
-import org.springframework.data.mongodb.datatables.model.DataTablesCount;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.util.StringUtils;
 
@@ -451,7 +450,7 @@ public class DataTablesUtils {
      * @param operations
      * @return
      */
-    public static <T, ID extends Serializable> TypedAggregation<DataTablesCount> makeAggregationCountOnly(
+    public static <T, ID extends Serializable> TypedAggregation<T> makeAggregationCountOnly(
             MongoEntityInformation<T, ID> entityInformation, DataTablesInput input, AggregationOperation[] operations) {
         List<AggregationOperation> opList = new LinkedList<>();
         if (operations != null) {
@@ -463,7 +462,7 @@ public class DataTablesUtils {
         opList.addAll(toAggregationOperation(entityInformation, input));
 
         opList.add(group().count().as("_count"));
-        return newAggregation(DataTablesCount.class, opList);
+        return newAggregation(entityInformation.getJavaType(), opList);
     }
 
     /**
