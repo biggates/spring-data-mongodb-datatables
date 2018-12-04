@@ -5,6 +5,14 @@ This is a [sample project](spring-data-mongodb-datatables-samples) showing how i
 
 This project is inspired from [darrachequesne/spring-data-jpa-datatables](https://github.com/darrachequesne/spring-data-jpa-datatables/), which works with spring-data-jpa.
 
+## Deprecation ##
+
+Because [Damien](https://github.com/darrachequesne) now has [darrachequesne/spring-data-mongodb-datatables](https://github.com/darrachequesne/spring-data-mongodb-datatables) released, and this project has its own modification on `DataTablesInput`, I think it is time to mark it as `@Deprecated` now.
+
+As Damien's implementation does not implement `Aggregation`, this repository will remain open , but will NOT be maintained anymore.
+
+If you need similar features (customizable query with spring-data) but don't use DataTables, my new project [eaphone-spring-data-query](https://github.com/biggates/eaphone-spring-data-query) will be another choice. 
+
 ## Usage ##
 
 Basic usage is the same with [darrachequesne/spring-data-jpa-datatables](https://github.com/darrachequesne/spring-data-jpa-datatables/)
