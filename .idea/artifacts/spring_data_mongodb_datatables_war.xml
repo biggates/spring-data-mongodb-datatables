@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="spring-data-mongodb-datatables:war">
+    <output-path>$PROJECT_DIR$/spring-data-mongodb-datatables/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>spring-data-mongodb-datatables</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="spring-data-mongodb-datatables-0.4-1-SNAPSHOT.war">
+      <element id="artifact" artifact-name="spring-data-mongodb-datatables:war exploded" />
+    </root>
+  </artifact>
+</component>
