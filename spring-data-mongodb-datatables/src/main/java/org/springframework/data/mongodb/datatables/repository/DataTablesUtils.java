@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
 
 import org.reflections.ReflectionUtils;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +32,7 @@ import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
 import org.springframework.data.mongodb.datatables.mapping.Filter;
 import org.springframework.data.mongodb.datatables.mapping.Search;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
