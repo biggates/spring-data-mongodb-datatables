@@ -50,8 +50,9 @@
 		<dependency>
 			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
-			<optional>true</optional>
-			<scope>provided</scope>
+			<version>4.2.1</version>
+			<!--<optional>true</optional>-->
+			<!--<scope>provided</scope>-->
 		</dependency>
 
 		<!--<dependency>-->
