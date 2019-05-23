@@ -16,13 +16,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-
 import org.reflections.ReflectionUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -31,6 +32,7 @@ import org.springframework.data.mongodb.datatables.mapping.ColumnType;
 import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
 import org.springframework.data.mongodb.datatables.mapping.Filter;
 import org.springframework.data.mongodb.datatables.mapping.Search;
+import org.springframework.data.mongodb.datatables.model.DataTablesCount;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
@@ -96,7 +98,7 @@ public class DataTablesUtils {
             final String currentLevelName = fieldNameParts[currentIndex];
             String decidedName = null;
             Class<?> currentLevelFieldType = null;
-            
+
             // do logic and append more
             @SuppressWarnings("unchecked")
             Set<Field> possibleFields = ReflectionUtils.getAllFields(javaType, new Predicate<Field>() {
@@ -450,41 +452,64 @@ public class DataTablesUtils {
      * @param operations
      * @return
      */
-    public static <T, ID extends Serializable> TypedAggregation<T> makeAggregationCountOnly(
-            MongoEntityInformation<T, ID> entityInformation, DataTablesInput input, AggregationOperation[] operations) {
+    private static <T, ID extends Serializable> TypedAggregation<T> makeAggregationCountOnly(
+            MongoEntityInformation<T, ID> entityInformation, DataTablesInput input,
+            AggregationOperation[] operationsBefore, AggregationOperation[] operationsAfter) {
         List<AggregationOperation> opList = new LinkedList<>();
-        if (operations != null) {
-            for (int i = 0; i < operations.length; i++) {
-                opList.add(operations[i]);
+        if (operationsBefore != null) {
+            for (int i = 0; i < operationsBefore.length; i++) {
+                opList.add(operationsBefore[i]);
             }
         }
 
         opList.addAll(toAggregationOperation(entityInformation, input));
 
+        if (operationsAfter != null) {
+            for (int i = 0; i < operationsAfter.length; i++) {
+                opList.add(operationsAfter[i]);
+            }
+        }
+
         opList.add(group().count().as("_count"));
         return newAggregation(entityInformation.getJavaType(), opList);
+    }
+
+    static <T, ID extends Serializable> long count(MongoOperations mongoOperations,
+            MongoEntityInformation<T, ID> entityInformation, DataTablesInput input,
+            AggregationOperation[] preFilteringOps, AggregationOperation[] additionalOps) {
+        final TypedAggregation<T> aggCount = makeAggregationCountOnly(entityInformation, input, preFilteringOps,
+                additionalOps);
+        AggregationResults<DataTablesCount> countResult = mongoOperations.aggregate(aggCount,
+                DataTablesCount.class);
+        if (countResult != null && countResult.getUniqueMappedResult() != null) {
+            return countResult.getUniqueMappedResult().getCount();
+        } else {
+            return 0L;
+        }
     }
 
     /**
      * Create an {@link TypedAggregation} with specified {@link DataTablesInput} as filter, plus specified
      * {@link AggregationOperation}[]
      * 
-     * @param classOfT
+     * @param entityInformation
      * @param input
      * @param pageable
      * @param operations
      * @return
      */
-    public static <T> TypedAggregation<T> makeAggregation(Class<T> classOfT, DataTablesInput input, Pageable pageable,
-            AggregationOperation[] operations) {
+    public static <T> TypedAggregation<T> makeAggregation(
+            MongoEntityInformation<T, ? extends Serializable> entityInformation,
+            DataTablesInput input, Pageable pageable,
+            AggregationOperation[] operationsBefore, AggregationOperation[] operationsAfter) {
         List<AggregationOperation> opList = new LinkedList<>();
-        if (operations != null) {
-            for (int i = 0; i < operations.length; i++) {
-                opList.add(operations[i]);
+        if (operationsBefore != null) {
+            for (int i = 0; i < operationsBefore.length; i++) {
+                opList.add(operationsBefore[i]);
             }
         }
 
-        opList.addAll(toAggregationOperation(null, input));
+        opList.addAll(toAggregationOperation(entityInformation, input));
 
         if (pageable != null) {
             final Sort s = pageable.getSort();
@@ -494,7 +519,14 @@ public class DataTablesUtils {
             opList.add(skip((long) pageable.getOffset()));
             opList.add(limit(pageable.getPageSize()));
         }
-        return newAggregation(classOfT, opList);
+
+        if (operationsAfter != null) {
+            for (int i = 0; i < operationsAfter.length; i++) {
+                opList.add(operationsAfter[i]);
+            }
+        }
+
+        return newAggregation(entityInformation.getJavaType(), opList);
     }
 
 }

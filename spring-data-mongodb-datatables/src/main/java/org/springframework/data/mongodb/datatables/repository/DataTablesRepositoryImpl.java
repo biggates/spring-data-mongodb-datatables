@@ -5,7 +5,6 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.datatables.mapping.DataTablesInput;
 import org.springframework.data.mongodb.datatables.mapping.DataTablesOutput;
-import org.springframework.data.mongodb.datatables.model.DataTablesCount;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 
@@ -139,6 +137,11 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
     @Override
     public <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
             AggregationOperation... operations) {
+        return findAll(classOfView, input, operations, null);
+    }
+
+    private <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
+            AggregationOperation[] preFilteringOps, AggregationOperation[] additionalOps) {
         DataTablesOutput<View> output = new DataTablesOutput<View>();
         output.setDraw(input.getDraw());
 
@@ -150,14 +153,17 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
             }
             output.setRecordsTotal(recordsTotal);
 
-            Page<View> data = findPage(this.entityInformation, classOfView, input, operations);
+            DataTablesOutput<View> data = findPage(this.entityInformation, classOfView, input, preFilteringOps,
+                    additionalOps);
 
-            output.setData(data.getContent());
-            output.setRecordsFiltered(data.getTotalElements());
+            output.setData(data.getData());
+            output.setRecordsTotal(data.getRecordsTotal());
+            output.setRecordsFiltered(data.getRecordsFiltered());
 
         } catch (Exception e) {
             output.setError(e.toString());
             output.setRecordsFiltered(0L);
+            output.setRecordsTotal(0L);
             log.error("caught exception", e);
         }
 
@@ -172,38 +178,51 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
      */
     @Override
     public <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
-            Collection<? extends AggregationOperation> operations) {
-        AggregationOperation[] opArray = operations.toArray(new AggregationOperation[0]);
-        return findAll(classOfView, input, opArray);
+            Collection<? extends AggregationOperation> preFilteringOptions) {
+        AggregationOperation[] preFilteringOps = preFilteringOptions.toArray(new AggregationOperation[0]);
+        return findAll(classOfView, input, null, preFilteringOps);
     }
 
-    private <View> Page<View> findPage(MongoEntityInformation<T, ID> entityInformation,
-            Class<View> classOfView, DataTablesInput input, AggregationOperation... operations) {
+    @Override
+    public <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
+            Collection<? extends AggregationOperation> additionalOperations,
+            Collection<? extends AggregationOperation> preFilteringOperations) {
+        AggregationOperation[] additionalOps = additionalOperations == null ? null
+                : additionalOperations.toArray(new AggregationOperation[0]);
+        AggregationOperation[] preFilteringOps = preFilteringOperations == null ? null
+                : preFilteringOperations.toArray(new AggregationOperation[0]);
+        return findAll(classOfView, input, additionalOps, preFilteringOps);
+    }
+
+    private <View> DataTablesOutput<View> findPage(MongoEntityInformation<T, ID> entityInformation,
+            Class<View> classOfView, DataTablesInput input, AggregationOperation[] preFilteringOps,
+            AggregationOperation[] additionalOps) {
         final Pageable pageable = DataTablesUtils.getPageable(input);
 
-        final TypedAggregation<T> aggWithPage = DataTablesUtils.makeAggregation(entityInformation.getJavaType(), input, pageable,
-                operations);
+        long countTotal = DataTablesUtils.count(mongoOperations, entityInformation, input, null, null);
 
-        final TypedAggregation<T> aggCount = DataTablesUtils.makeAggregationCountOnly(entityInformation,
-                input, operations);
-        long count = 0L;
-        AggregationResults<DataTablesCount> countResult = mongoOperations.aggregate(aggCount, DataTablesCount.class);
+        DataTablesOutput<View> result = new DataTablesOutput<>();
 
-        if (countResult != null && countResult.getUniqueMappedResult() != null) {
-            count = countResult.getUniqueMappedResult().getCount();
+        if (countTotal == 0) {
+            result.setRecordsFiltered(0);
+            result.setRecordsTotal(0);
+            result.setData(Collections.emptyList());
+            return result;
         }
+        
+        long countFiltered = DataTablesUtils.count(mongoOperations, entityInformation, input, preFilteringOps, additionalOps);
 
-        if (count == 0) {
-            return new PageImpl<View>(Collections.<View> emptyList());
-        }
-
-        List<View> result = null;
+        final TypedAggregation<T> aggWithPage = DataTablesUtils.makeAggregation(entityInformation, input,
+                pageable, preFilteringOps, additionalOps);
+        
         AggregationResults<View> aggResult = mongoOperations.aggregate(aggWithPage, classOfView);
         if (aggResult != null) {
-            result = aggResult.getMappedResults();
+            result.setRecordsFiltered(countFiltered);
+            result.setRecordsTotal(countTotal);
+            result.setData(aggResult.getMappedResults());
         }
 
-        return new PageImpl<View>(result, pageable, count);
+        return result;
     }
 
 }
