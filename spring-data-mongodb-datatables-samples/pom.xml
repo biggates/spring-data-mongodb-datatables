@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.eaphone</groupId>
 		<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-		<version>0.3.2-SNAPSHOT</version>
+		<version>0.3.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-data-mongodb-datatables-samples</artifactId>
@@ -45,7 +45,7 @@
 		<dependency>
 			<groupId>com.github.fakemongo</groupId>
 			<artifactId>fongo</artifactId>
-			<version>2.0.12</version>
+			<version>2.0.13</version>
 		</dependency>
 
 		<dependency>
@@ -58,7 +58,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>datatables</artifactId>
-			<version>1.10.13</version>
+			<version>1.10.19</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>

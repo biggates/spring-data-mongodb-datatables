@@ -57,14 +57,32 @@ public interface DataTablesRepository<T, ID extends Serializable>
             AggregationOperation... operations);
 
     /**
-     * Returns the filtered list for the given {@link DataTablesInput} using the given {@link TypedAggregation}
+     * Returns the filtered list for the given {@link DataTablesInput} after the given {@link TypedAggregation}
      * 
      * @param classOfView
      * @param input
-     * @param operations
+     * @param preFilteringOptions
      * @return
      */
     <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
-            Collection<? extends AggregationOperation> operations);
+            Collection<? extends AggregationOperation> preFilteringOptions);
+
+    /**
+     * Returns the filtered list with aggregation in the following order:
+     * <ol>
+     *  <li>firstly, in {@link preFilteringOperations}</li>
+     *  <li>then, in {@link DataTablesInput}</li>
+     *  <li>then, in {@link additionalOperations}</li>
+     * </ol>
+     * 
+     * @param classOfView
+     * @param input
+     * @param additionalOperations,
+     * @param preFilteringOperations
+     * @return
+     */
+    <View> DataTablesOutput<View> findAll(Class<View> classOfView, DataTablesInput input,
+            Collection<? extends AggregationOperation> additionalOperations,
+            Collection<? extends AggregationOperation> preFilteringOperations);
 
 }
