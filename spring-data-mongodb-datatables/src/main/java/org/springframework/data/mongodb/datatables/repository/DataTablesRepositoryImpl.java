@@ -71,7 +71,13 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
     }
 
     private <S extends T> Page<S> findAll(Query q, Pageable p, Class<S> classOfS) {
-        q.with(p);
+        if (p.getSort() == null) {
+            if (!p.isUnpaged()) {
+                q.limit(p.getPageSize()).skip(p.getOffset());
+            }
+        } else {
+            q.with(p);
+        }
 
         long count = mongoOperations.count(q, this.entityInformation.getCollectionName());
 
@@ -209,12 +215,13 @@ public class DataTablesRepositoryImpl<T, ID extends Serializable> extends Simple
             result.setData(Collections.emptyList());
             return result;
         }
-        
-        long countFiltered = DataTablesUtils.count(mongoOperations, entityInformation, input, preFilteringOps, additionalOps);
+
+        long countFiltered = DataTablesUtils.count(mongoOperations, entityInformation, input, preFilteringOps,
+                additionalOps);
 
         final TypedAggregation<T> aggWithPage = DataTablesUtils.makeAggregation(entityInformation, input,
                 pageable, preFilteringOps, additionalOps);
-        
+
         AggregationResults<View> aggResult = mongoOperations.aggregate(aggWithPage, classOfView);
         if (aggResult != null) {
             result.setRecordsFiltered(countFiltered);
