@@ -463,9 +463,10 @@ public class DataTablesUtils {
             }
         }
 
-        opList.addAll(toAggregationOperation(entityInformation, input));
+        List<AggregationOperation> matches = toAggregationOperation(entityInformation, input);
+        opList.addAll(matches);
 
-        if (operationsAfter != null) {
+        if (matches.size() > 0 && operationsAfter != null) {
             for (int i = 0; i < operationsAfter.length; i++) {
                 opList.add(operationsAfter[i]);
             }
