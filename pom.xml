@@ -10,7 +10,7 @@
 
 	<groupId>com.eaphone</groupId>
 	<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-	<version>0.4.3.SNAPSHOT</version>
+	<version>0.4.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<organization>
@@ -19,7 +19,7 @@
 	</organization>
 
 	<properties>
-		<project.version>0.4.3.SNAPSHOT</project.version>
+		<project.version>0.4.3-SNAPSHOT</project.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
