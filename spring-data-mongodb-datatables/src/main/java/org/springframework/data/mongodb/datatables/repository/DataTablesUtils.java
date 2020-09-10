@@ -34,11 +34,9 @@ import org.springframework.data.mongodb.datatables.mapping.Filter;
 import org.springframework.data.mongodb.datatables.mapping.Search;
 import org.springframework.data.mongodb.datatables.model.DataTablesCount;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Predicate;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,26 +99,23 @@ public class DataTablesUtils {
 
 			// do logic and append more
 			@SuppressWarnings("unchecked")
-			Set<Field> possibleFields = ReflectionUtils.getAllFields(javaType, new Predicate<Field>() {
-				@Override
-				public boolean apply(@Nullable Field input) {
-					if (input != null) {
-						if (currentLevelName.equals(input.getName())) {
-							return true;
-						} else if (IS_JACKSON_AVAILABLE) {
-							// direct matching with @JsonProperty
-							final JsonProperty jsonProperty = input.getAnnotation(JsonProperty.class);
-							if (jsonProperty != null && StringUtils.hasLength(jsonProperty.value())) {
-								if (currentLevelName.equals(jsonProperty.value())) {
-									return true;
-								}
+			Set<Field> possibleFields = ReflectionUtils.getAllFields(javaType, input -> {
+				if (input != null) {
+					if (currentLevelName.equals(input.getName())) {
+						return true;
+					} else if (IS_JACKSON_AVAILABLE) {
+						// direct matching with @JsonProperty
+						final JsonProperty jsonProperty = input.getAnnotation(JsonProperty.class);
+						if (jsonProperty != null && StringUtils.hasLength(jsonProperty.value())) {
+							if (currentLevelName.equals(jsonProperty.value())) {
+								return true;
 							}
-
-							// TODO: Jackson PropertyNamingStrategy should also be considered
 						}
+
+						// TODO: Jackson PropertyNamingStrategy should also be considered
 					}
-					return false;
 				}
+				return false;
 			});
 
 			if (possibleFields != null && !possibleFields.isEmpty()) {
@@ -352,7 +347,7 @@ public class DataTablesUtils {
 	 * @return
 	 */
 	private static Pattern getLikeFilterPattern(String filterValue) {
-		return Pattern.compile(filterValue, Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
+		return Pattern.compile(filterValue, Pattern.CASE_INSENSITIVE);
 	}
 
 	private static class DataTablesPageRequest implements Pageable {

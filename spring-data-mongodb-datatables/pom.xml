@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.eaphone</groupId>
 		<artifactId>spring-data-mongodb-datatables-parent</artifactId>
-		<version>0.4.2-SNAPSHOT</version>
+		<version>0.4.3.SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-data-mongodb-datatables</artifactId>
@@ -35,16 +35,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-validator</artifactId>
-			<version>6.0.9.Final</version>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
-			<version>0.9.11</version>
+			<version>0.9.12</version>
 		</dependency>
 
 		<dependency>
